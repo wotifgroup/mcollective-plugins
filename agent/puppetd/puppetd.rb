@@ -74,7 +74,7 @@ module MCollective
                         reply[:output] = %x[#{@puppetd} --onetime]
 
                     elsif @splaytime > 0
-                        reply[:output] = %x[#{@puppetd} --onetime --splaylimit #{@splaytime} --splay]
+                        reply[:output] = %x[#{@puppetd} --onetime --splaylimit #{@splaytime} --splay #{puppetd_options}]
 
                     else
                         reply[:output] = %x[#{@puppetd} --onetime]
