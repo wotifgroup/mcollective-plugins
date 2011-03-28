@@ -67,17 +67,18 @@ module MCollective
             end
 
             def runonce
+                puppetd_options = request[:puppetd_options]
                 if File.exists?(@lockfile)
                     reply.fail "Lock file exists, puppetd is already running or it's disabled"
                 else
                     if request[:forcerun]
-                        reply[:output] = %x[#{@puppetd} --onetime]
+                        reply[:output] = %x[#{@puppetd} --onetime #{puppetd_options}]
 
                     elsif @splaytime > 0
                         reply[:output] = %x[#{@puppetd} --onetime --splaylimit #{@splaytime} --splay #{puppetd_options}]
 
                     else
-                        reply[:output] = %x[#{@puppetd} --onetime]
+                        reply[:output] = %x[#{@puppetd} --onetime #{puppetd_options}]
                     end
                 end
             end
