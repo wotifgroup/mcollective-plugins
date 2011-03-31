@@ -31,7 +31,7 @@ action "runonce", :description => "Initiates a single Puppet run" do
         :prompt      => "Puppetd options",
         :description => "Extra command line arguments to puppetd",
         :type        => :string,
-        :validation  => '^.+$',
+        :validation  => '^.*$',
         :optional    => true,
         :maxlength    => 256
     
