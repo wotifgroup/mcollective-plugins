@@ -27,11 +27,31 @@ options = rpcoptions do |parser, options|
 end
 
 puppetd = rpcclient("puppetd", :options => options)
+puts("ARGV: #{ARGV.join(' ')}")
 
 if ARGV.length >= 1
     command = ARGV.shift
 else
     puts("Please specify a command")
+    exit 1
+end
+
+options_whitelist = ["--noop","--no-noop"]
+options_illegal_chars = /[\$;'"&\|]/
+options_regex = /(\-\-[\w\-]+)( +([\d\w][\w\-\d]+))?/
+options_parsed = @puppetd_options.scan(options_regex)
+options_illegal = options_parsed.select{ |x| x if !options_whitelist.include?(x[0]) }.map{|x| x[0]}
+puts("puppetd_options: #{@puppetd_options}")
+puts("options_parsed: #{options_parsed}")
+puts("options_illegal: #{options_illegal}")
+
+if @puppetd_options.scan(options_illegal_chars).size > 0
+    puts("Illegal charaters in puppeted options.")
+    exit 1
+end
+
+if options_illegal.size > 0 
+    puts("Illegal puppeted options specified: #{options_illegal.join(',')}")
     exit 1
 end
 
