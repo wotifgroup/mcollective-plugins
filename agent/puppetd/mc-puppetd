@@ -36,8 +36,8 @@ else
 end
 
 options_whitelist = ["--noop","--no-noop"]
-options_illegal_chars = /[\$;'"&\|]/
-options_regex = /(\-\-[\w\-]+)( +([\d\w][\w\-\d]+))?/
+options_illegal_chars = /[\$;&\|]/
+options_regex = /(\-\-[\w\-]+)( +(["'\d\w][\w\-\d\."']+))?/
 options_parsed = @puppetd_options.scan(options_regex)
 options_illegal = options_parsed.select{ |x| x if !options_whitelist.include?(x[0]) }.map{|x| x[0]}
 
