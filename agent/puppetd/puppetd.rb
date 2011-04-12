@@ -10,6 +10,12 @@ module MCollective
         #                        /var/lib/puppet/state/puppetdlock
         #    puppetd.puppetd   - Where to find the puppetd, defaults to
         #                        /usr/sbin/puppetd
+        #    puppetd.options_whitelist     - Comma seperated list of valid 
+        #                        options
+        #    puppetd.options_illegal_chars - String comprised of invalid 
+        #                        characters in options.
+        #    puppetd.options_options_regex - The Regex options must match.
+        #
         class Puppetd<RPC::Agent
             metadata    :name        => "SimpleRPC Puppet Agent",
                         :description => "Agent to manage the puppet daemon",
@@ -25,6 +31,22 @@ module MCollective
                 @statefile = @config.pluginconf["puppetd.statefile"] || "/var/lib/puppet/state/state.yaml"
                 @pidfile = @config.pluginconf["puppet.pidfile"] || "/var/run/puppet/agent.pid"
                 @puppetd = @config.pluginconf["puppetd.puppetd"] || "/usr/sbin/puppetd"
+                
+                if @config.pluginconf["puppetd.options_whitelist"]
+                    @options_whitelist = @config.pluginconf["puppetd.options_whitelist"].split(',')
+                else
+                    @options_whitelist = ["--noop","--no-noop"]
+                end
+                if @config.pluginconf["puppetd.options_illegal_chars"]
+                    @options_illegal_chars = Regexp.new(@config.pluginconf["puppetd.options_illegal_chars"])
+                else
+                    @options_illegal_chars = /[\$;&\|]/
+                end
+                if @config.pluginconf["puppetd.options_regex"]
+                    @options_regex = Regexp.new(@config.pluginconf["puppetd.options_regex"])
+                else
+                    @options_regex = /(\-\-[\w\-]+)( +(=?["'\d\w][\w\-\d\."']+))?/
+                end
             end
 
             action "enable" do
@@ -67,18 +89,31 @@ module MCollective
             end
 
             def runonce
-                puppetd_options = request[:puppetd_options]
+                @puppetd_options = request[:puppetd_options]
+                @options_parsed = @puppetd_options.scan(@options_regex)
+                @options_illegal = @options_parsed.select{ |x| x if !@options_whitelist.include?(x[0]) }.map{|x| x[0]}
+                                
+                if @puppetd_options.scan(@options_illegal_chars).size > 0
+                    reply.fail "Illegal charaters in puppeted options."
+                    return
+                end
+                
+                if @options_illegal.size > 0 
+                    reply.fail "Illegal puppeted options: #{@options_illegal.join(',')}"
+                    return
+                end
+                
                 if File.exists?(@lockfile)
                     reply.fail "Lock file exists, puppetd is already running or it's disabled"
                 else
                     if request[:forcerun]
-                        reply[:output] = %x[#{@puppetd} --onetime #{puppetd_options}]
+                        reply[:output] = %x[#{@puppetd} --onetime #{@puppetd_options}]
 
                     elsif @splaytime > 0
-                        reply[:output] = %x[#{@puppetd} --onetime --splaylimit #{@splaytime} --splay #{puppetd_options}]
+                        reply[:output] = %x[#{@puppetd} --onetime --splaylimit #{@splaytime} --splay #{@puppetd_options}]
 
                     else
-                        reply[:output] = %x[#{@puppetd} --onetime #{puppetd_options}]
+                        reply[:output] = %x[#{@puppetd} --onetime #{@puppetd_options}]
                     end
                 end
             end
