@@ -40,6 +40,7 @@ module MCollective
                 else
                     @options_regex = /(\-\-[\w\-]+)( +(=?["'\d\w][\w\-\d\."']+))?/
                 end
+                logger.debug("puppetd.options_whitelist: #{@options_whitelist}")
             end
 
             action "enable" do
