@@ -84,7 +84,7 @@ module MCollective
             end
 
             def runonce
-                @puppetd_options = request[:puppetd_options]
+                @puppetd_options = request[:puppetd_options] || ""
                 @options_parsed = @puppetd_options.scan(@options_regex)
                 @options_illegal = @options_parsed.select{ |x| x if !@options_whitelist.include?(x[0]) }.map{|x| x[0]}
                 
