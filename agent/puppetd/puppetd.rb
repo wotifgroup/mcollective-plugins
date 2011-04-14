@@ -52,7 +52,7 @@ module MCollective
             end
 
             action "runonce" do
-                validate :puppetd_options, :shellsafe
+                validate :puppetd_options, :shellsafe if request.include?(:puppetd_options)
                 runonce
             end
 
