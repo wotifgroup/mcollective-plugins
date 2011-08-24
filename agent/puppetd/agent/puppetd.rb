@@ -13,6 +13,9 @@ module MCollective
         #    puppetd.summary   - Where to find the summary file written by Puppet
         #                        2.6.8 and newer
         #    puppetd.pidfile   - Where to find the Puppet pid file
+        #    puppetd.options_whitelist - Comma seperated list of valid options
+        #    puppetd.options_options_regex - The Regex options must match.
+
         class Puppetd<RPC::Agent
             metadata    :name        => "SimpleRPC Puppet Agent",
                         :description => "Agent to manage the puppet daemon",
@@ -29,6 +32,17 @@ module MCollective
                 @pidfile = @config.pluginconf["puppet.pidfile"] || "/var/run/puppet/agent.pid"
                 @puppetd = @config.pluginconf["puppetd.puppetd"] || "/usr/sbin/puppetd"
                 @last_summary = @config.pluginconf["puppet.summary"] || "/var/lib/puppet/state/last_run_summary.yaml"
+                if @config.pluginconf["puppetd.options_whitelist"]
+                    @options_whitelist = @config.pluginconf["puppetd.options_whitelist"].split(',')
+                else
+                    @options_whitelist = ["--noop","--no-noop"]
+                end
+                if @config.pluginconf["puppetd.options_regex"]
+                    @options_regex = Regexp.new(@config.pluginconf["puppetd.options_regex"])
+                else
+                    @options_regex = /(\-\-[\w\-]+)( +(=?["'\d\w][\w\-\d\."']+))?/
+                end
+                logger.debug("puppetd.options_whitelist: #{@options_whitelist}")
             end
 
             action "last_run_summary" do
@@ -44,6 +58,7 @@ module MCollective
             end
 
             action "runonce" do
+                validate :puppetd_options, :shellsafe if request.include?(:puppetd_options)
                 runonce
             end
 
@@ -85,10 +100,19 @@ module MCollective
             end
 
             def runonce
+                @puppetd_options = request[:puppetd_options] || ""
+                @options_parsed = @puppetd_options.scan(@options_regex)
+                @options_illegal = @options_parsed.select{ |x| x if !@options_whitelist.include?(x[0]) }.map{|x| x[0]}
+
+                if @options_illegal.size > 0
+                    reply.fail "Illegal puppeted options: #{@options_illegal.join(',')}"
+                    return
+                end
+
                 if File.exists?(@lockfile)
                     reply.fail "Lock file exists, puppetd is already running or it's disabled"
                 else
-                    cmd = [@puppetd, "--onetime"]
+                    cmd = [@puppetd, "--onetime", @puppetd_options]
 
                     unless request[:forcerun]
                         if @splaytime > 0

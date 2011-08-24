@@ -46,6 +46,14 @@ action "runonce", :description => "Initiates a single Puppet run" do
     #    :optional    => true,
     #    :maxlength   => 5
 
+     input :puppetd_options,
+        :prompt      => "Puppetd options",
+        :description => "Extra command line arguments to puppetd",
+        :type        => :string,
+        :validation  => '^.*$',
+        :optional    => true,
+        :maxlength    => 256
+
     output :output,
            :description => "Output from puppetd",
            :display_as => "Output"
