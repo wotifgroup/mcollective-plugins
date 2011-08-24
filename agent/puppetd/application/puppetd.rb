@@ -1,11 +1,15 @@
 class MCollective::Application::Puppetd<MCollective::Application
     description "Remote Puppet daemon manager"
-    usage "Usage: mc [enable|disable|runonce|runall|status|summary|count] [concurrency]"
+    usage "Usage: mc [enable|disable|runonce|runall|status|summary|count] [concurrency] [--options='puppetd extra options']"
 
     option :force,
         :description    => "Force the puppet run to happen immediately without splay",
         :arguments      => ["--force", "-f"],
         :type           => :bool
+    option :options,
+        :description    => "Extra command line arguments to puppetd",
+        :arguments      => ["-o", "--options OPTIONS_STRING"],
+        :type           => String
 
     def post_option_parser(configuration)
         if ARGV.length >= 1
@@ -69,7 +73,7 @@ class MCollective::Application::Puppetd<MCollective::Application
                     hosts.each do |host|
                         running = waitfor(configuration[:concurrency], mc)
                         log("Running #{host}, concurrency is #{running}")
-                        result = mc.custom_request("runonce", {:forcerun => true}, host, {"identity" => host})
+                        result = mc.custom_request("runonce", {:forcerun => true,:puppetd_options => configuration[:options]}, host, {"identity" => host})
 
                         if result.is_a?(Array)
                             log("#{host} schedule status: #{result[0][:statusmsg]}")
@@ -85,7 +89,7 @@ class MCollective::Application::Puppetd<MCollective::Application
                 end
 
             when "runonce"
-                printrpc mc.runonce(:forcerun => configuration[:force])
+                printrpc mc.runonce(:forcerun => configuration[:force], :puppetd_options => configuration[:options])
 
             when "status"
                 mc.send(configuration[:command]).each do |node|
