@@ -73,7 +73,7 @@ class MCollective::Application::Puppetd<MCollective::Application
                     hosts.each do |host|
                         running = waitfor(configuration[:concurrency], mc)
                         log("Running #{host}, concurrency is #{running}")
-                        result = mc.custom_request("runonce", {:forcerun => true,:puppetd_options => configuration[:options]}, host, {"identity" => host})
+                        result = mc.custom_request("runonce", {:forcerun => true,:puppetd_options => configuration[:options] || ""}, host, {"identity" => host})
 
                         if result.is_a?(Array)
                             log("#{host} schedule status: #{result[0][:statusmsg]}")
@@ -89,7 +89,7 @@ class MCollective::Application::Puppetd<MCollective::Application
                 end
 
             when "runonce"
-                printrpc mc.runonce(:forcerun => configuration[:force], :puppetd_options => configuration[:options])
+                printrpc mc.runonce(:forcerun => configuration[:force], :puppetd_options => configuration[:options] || "")
 
             when "status"
                 mc.send(configuration[:command]).each do |node|
