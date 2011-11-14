@@ -1,12 +1,12 @@
-metadata    :name        => "Agent for Puppet RAL interaction",
-            :description => "Agent to inspect and act on the RAL",
+metadata    :name        => "Resource Abstraction Layer Agent",
+            :description => "View and edit resources with Puppet's resource abstraction layer",
             :author      => "R.I.Pienaar, Max Martin",
             :license     => "ASL2",
             :version     => "0.2",
-            :url         => "http://mcollective-plugins.googlecode.com/",
+            :url         => "https://github.com/puppetlabs/mcollective-plugins",
             :timeout     => 180
 
-action "create", :description => "Add a resource to the RAL" do
+action "create", :description => "Add a resource via the RAL" do
     display :always
 
     input :type,
@@ -25,12 +25,25 @@ action "create", :description => "Add a resource to the RAL" do
           :optional    => false,
           :maxlength   => 90
 
-    output :result,
-           :description => "Result of the action",
-           :display_as  => "Result"
+    input :avoid_conflict,
+          :prompt      => "Avoid conflict",
+          :description => "Resource property to ignore if there's a conflict",
+          :type        => :string,
+          :validation  => '.',
+          :optional    => true,
+          :maxlength   => 90
+
+    output :status,
+           :description => "Message indicating success or failure of the action",
+           :display_as  => "Status"
+
+    output :resource,
+           :description => "Resource that was created",
+           :display_as  => "Resource"
+
 end
 
-action "find", :description => "Get the value of a resource" do
+action "find", :description => "Get the attributes and status of a resource" do
     display :always
 
     input :type,
@@ -41,19 +54,36 @@ action "find", :description => "Get the value of a resource" do
           :optional    => false,
           :maxlength   => 90
 
-    input :name,
-          :prompt      => "Resource name",
+    input :title,
+          :prompt      => "Resource title",
           :description => "Name of resource to check",
           :type        => :string,
           :validation  => '.',
           :optional    => true,
           :maxlength   => 90
 
-    output :result,
-           :description => "Value of the inspected resource",
-           :display_as  => "Result"
+    output :type,
+          :description => "Type of the inspected resource",
+          :display_as  => "Type"
+
+    output :title,
+          :description => "Title of the inspected resource",
+          :display_as  => "Title"
+
+    output :tags,
+          :description => "Tags of the inspected resource",
+          :display_as  => "Tags"
+
+    output :exported,
+          :description => "Boolean flag indicating export status",
+          :display_as  => "Exported"
+
+    output :parameters,
+          :description => "Parameters of the inspected resource",
+          :display_as  => "Parameters"
 end
-action "search", :description => "Get the value of all resources of a certain type" do
+
+action "search", :description => "Get detailed info for all resources of a given type" do
     display :always
 
     input :type,
@@ -65,6 +95,6 @@ action "search", :description => "Get the value of all resources of a certain ty
           :maxlength   => 90
 
     output :result,
-           :description => "Value of the inspected resources",
+           :description => "The values of the inspected resources",
            :display_as  => "Result"
 end

@@ -1,12 +1,12 @@
-metadata    :name        => "SimpleRPC Puppet Agent",
-            :description => "Agent to manage the puppet daemon",
+metadata    :name        => "Puppet Controller Agent",
+            :description => "Run puppet agent, get its status, and enable/disable it",
             :author      => "R.I.Pienaar",
             :license     => "Apache License 2.0",
-            :version     => "1.3",
-            :url         => "http://mcollective-plugins.googlecode.com/",
+            :version     => "1.4",
+            :url         => "https://github.com/puppetlabs/mcollective-plugins",
             :timeout     => 20
 
-action "last_run_summary", :description => "Retrieves the last Puppet Run summary" do
+action "last_run_summary", :description => "Get a summary of the last puppet run" do
     display :always
 
     output :time,
@@ -25,22 +25,22 @@ action "last_run_summary", :description => "Retrieves the last Puppet Run summar
            :display_as => "Events"
 end
 
-action "enable", :description => "Enables the Puppetd" do
+action "enable", :description => "Enable puppet agent" do
     output :output,
            :description => "String indicating status",
            :display_as => "Status"
 end
 
-action "disable", :description => "Disables the Puppetd" do
+action "disable", :description => "Disable puppet agent" do
     output :output,
            :description => "String indicating status",
            :display_as => "Status"
 end
 
-action "runonce", :description => "Initiates a single Puppet run" do
+action "runonce", :description => "Invoke a single puppet run" do
     #input :forcerun,
     #    :prompt      => "Force puppet run",
-    #    :description => "Should the puppet run happen immediately",
+    #    :description => "Should the puppet run happen immediately?",
     #    :type        => :string,
     #    :validation  => '^.+$',
     #    :optional    => true,
@@ -55,23 +55,23 @@ action "runonce", :description => "Initiates a single Puppet run" do
         :maxlength    => 256
 
     output :output,
-           :description => "Output from puppetd",
+           :description => "Output from puppet agent",
            :display_as => "Output"
 end
 
-action "status", :description => "Status of the Puppet daemon" do
+action "status", :description => "Get puppet agent's status" do
     display :always
 
     output :enabled,
-           :description => "Is the agent enabled",
+           :description => "Whether puppet agent is enabled",
            :display_as => "Enabled"
 
     output :running,
-           :description => "Is the agent running",
+           :description => "Whether puppet agent is running",
            :display_as => "Running"
 
     output :lastrun,
-           :description => "When last did the agent run",
+           :description => "When puppet agent last ran",
            :display_as => "Last Run"
 
     output :output,
